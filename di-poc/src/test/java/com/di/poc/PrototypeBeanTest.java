@@ -1,5 +1,8 @@
 package com.di.poc;
 
+import com.di.poc.context.ApplicationContext;
+import com.di.poc.models.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,17 +13,22 @@ public class PrototypeBeanTest {
 	ApplicationContext ac;
 
 	@Before
-	public void initializeContext() {
+	public void setup() {
 		ac = ApplicationContext.getInstance();
 	}
 
+	@After
+	public void tearDown() {
+		ac.destory();
+	}
+
 	@Test
-	public void testSingletonBeanCreationWithDefaultConstructor() {
-		ac.registerPrototypeBean(SingletonWithDefaultConstructor.class);
+	public void testPrototypeBeanCreationWithDefaultConstructor() {
+		ac.registerPrototypeBean(DefaultConstructorBean.class);
 		ac.initialize();
 
-		SingletonWithDefaultConstructor bean1 = ac.getBean(SingletonWithDefaultConstructor.class);
-		SingletonWithDefaultConstructor bean2 = ac.getBean(SingletonWithDefaultConstructor.class);
+		DefaultConstructorBean bean1 = ac.getBean(DefaultConstructorBean.class);
+		DefaultConstructorBean bean2 = ac.getBean(DefaultConstructorBean.class);
 		assertNotNull(bean1);
 		assertNotNull(bean2);
 
@@ -29,40 +37,49 @@ public class PrototypeBeanTest {
 	}
 
 	@Test
-	public void testSingletonBeanCreationWithParameterizedConstructor() {
-		ac.registerPrototypeBean(SingletonBeanWithParameterizedConstructor.class, new Something(), new Nothing());
+	public void testPrototypeBeanCreationWithParameterizedConstructor() {
+		ac.registerPrototypeBean(ParameterizedConstructorBean.class, new ABean(), new BBean());
 		ac.initialize();
 
-		SingletonBeanWithParameterizedConstructor bean1 = ac.getBean(SingletonBeanWithParameterizedConstructor.class);
-		SingletonBeanWithParameterizedConstructor bean2 = ac.getBean(SingletonBeanWithParameterizedConstructor.class);
+		ParameterizedConstructorBean bean1 = ac.getBean(ParameterizedConstructorBean.class);
+		ParameterizedConstructorBean bean2 = ac.getBean(ParameterizedConstructorBean.class);
 		assertNotNull(bean1);
 		assertNotNull(bean2);
 
 		assertNotSame(bean1, bean2);
 		assertEquals(bean1, bean2);
-		assertSame(bean1.getSomething(), bean2.getSomething());
-		assertEquals(bean1.getSomething(), bean2.getSomething());
-		assertSame(bean1.getNothing(), bean2.getNothing());
-		assertEquals(bean1.getNothing(), bean2.getNothing());
+		assertSame(bean1.getABean(), bean2.getABean());
+		assertEquals(bean1.getABean(), bean2.getABean());
+		assertSame(bean1.getBBean(), bean2.getBBean());
+		assertEquals(bean1.getBBean(), bean2.getBBean());
 	}
 
 	@Test
-	public void testSingletonBeanCreationWithParameterizedConstructorAutowired() {
-		ac.registerPrototypeBean(SingletonBeanWithParameterizedConstructorAutowired.class);
-		ac.registerPrototypeBean(Something.class);
-		ac.registerPrototypeBean(Nothing.class);
+	public void testPrototypeBeanCreationWithParameterizedConstructorAutowired() {
+		ac.registerPrototypeBean(ParameterizedConstructorAutowiredBean.class);
+		ac.registerPrototypeBean(ABean.class);
+		ac.registerPrototypeBean(BBean.class);
 		ac.initialize();
 
-		SingletonBeanWithParameterizedConstructorAutowired bean1 = ac.getBean(SingletonBeanWithParameterizedConstructorAutowired.class);
-		SingletonBeanWithParameterizedConstructorAutowired bean2 = ac.getBean(SingletonBeanWithParameterizedConstructorAutowired.class);
+		ParameterizedConstructorAutowiredBean bean1 = ac.getBean(ParameterizedConstructorAutowiredBean.class);
+		ParameterizedConstructorAutowiredBean bean2 = ac.getBean(ParameterizedConstructorAutowiredBean.class);
 		assertNotNull(bean1);
 		assertNotNull(bean2);
 
 		assertNotSame(bean1, bean2);
 		assertEquals(bean1, bean2);
-		assertNotSame(bean1.getSomething(), bean2.getSomething());
-		assertEquals(bean1.getSomething(), bean2.getSomething());
-		assertNotSame(bean1.getNothing(), bean2.getNothing());
-		assertEquals(bean1.getNothing(), bean2.getNothing());
+		assertNotSame(bean1.getABean(), bean2.getABean());
+		assertEquals(bean1.getABean(), bean2.getABean());
+		assertNotSame(bean1.getBBean(), bean2.getBBean());
+		assertEquals(bean1.getBBean(), bean2.getBBean());
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testPrototypeBeanCreationWithParameterizedConstructorAutowiredWithMissingABean() {
+		ac.registerPrototypeBean(ParameterizedConstructorAutowiredBean.class);
+		ac.registerPrototypeBean(BBean.class);
+		ac.initialize();
+
+		ac.getBean(ParameterizedConstructorAutowiredBean.class);
 	}
 }
